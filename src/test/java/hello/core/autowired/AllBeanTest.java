@@ -2,9 +2,10 @@ package hello.core.autowired;
 
 import hello.core.AutoAppConfig;
 import hello.core.discount.DiscountPolicy;
+import hello.core.discount.FixDiscountPolicy;
+import hello.core.discount.RateDiscountPolicy;
 import hello.core.member.Grade;
 import hello.core.member.Member;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -28,8 +29,16 @@ public class AllBeanTest {
         assertThat(discountService).isInstanceOf(DiscountService.class);
         assertThat(discountPrice).isEqualTo(1000);
 
-        int rateDiscountPolicy = discountService.discount(member, 20000, "rateDiscountPolicy");
-        assertThat(rateDiscountPolicy).isEqualTo(2000);
+        int rateDiscountPrice = discountService.discount(member, 20000, "rateDiscountPolicy");
+        assertThat(rateDiscountPrice).isEqualTo(2000);
+
+        //List
+        int fixDiscountPrice = discountService.discount2(member, 30000, ac.getBean(FixDiscountPolicy.class));
+        assertThat(fixDiscountPrice).isEqualTo(1000);
+
+        int rateDiscountPrice2 = discountService.discount2(member, 40000, ac.getBean(RateDiscountPolicy.class));
+        assertThat(rateDiscountPrice2).isEqualTo(4000);
+
 
     }
 
@@ -48,6 +57,15 @@ public class AllBeanTest {
         public int discount(Member member, int price, String discountCode) {
             DiscountPolicy discountPolicy = policyMap.get(discountCode);
             return discountPolicy.discount(member, price);
+        }
+
+        public int discount2(Member member, int price,  DiscountPolicy discountPolicy) {
+            for (DiscountPolicy policy : policies) {
+                if(policy.equals(discountPolicy)) {
+                    return policy.discount(member, price);
+                }
+            }
+            return 0;
         }
     }
 
